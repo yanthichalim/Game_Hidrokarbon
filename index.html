@@ -1,0 +1,1140 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>ChemMillionaire · Hidrokarbon Kelas XII</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    background: radial-gradient(circle at 50% 0%, #1a2a52 0%, #060b18 70%);
+    display: flex; justify-content: center; align-items: flex-start;
+    min-height: 100vh; padding: 8px; color: #eaf1ff;
+  }
+
+  /* MOBILE VIEW max-width 520px */
+  .app {
+    max-width: 520px; width: 100%;
+    background: linear-gradient(160deg, #0e1733 0%, #131e3d 50%, #0a1129 100%);
+    border-radius: 28px; padding: 16px 14px 20px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.8), 0 0 0 1px rgba(120,180,255,0.15);
+    position: relative; overflow: hidden;
+  }
+  .app::before {
+    content: ''; position: absolute; top: -100px; left: -60px; width: 240px; height: 240px;
+    background: radial-gradient(circle, rgba(80,140,255,0.25), transparent 70%);
+    border-radius: 50%; pointer-events: none;
+  }
+  .app::after {
+    content: ''; position: absolute; bottom: -120px; right: -80px; width: 260px; height: 260px;
+    background: radial-gradient(circle, rgba(255,180,60,0.15), transparent 70%);
+    border-radius: 50%; pointer-events: none;
+  }
+
+  /* HEADER */
+  .header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 12px; position: relative; z-index: 2;
+  }
+  .brand {
+    display: flex; align-items: center; gap: 8px;
+    font-weight: 800; font-size: 1.1rem; letter-spacing: -0.4px;
+    background: linear-gradient(90deg, #ffd76a, #ffb03a);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .brand .logo {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: radial-gradient(circle at 30% 30%, #ffe9a3, #d68a1f);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1rem; box-shadow: 0 0 14px rgba(255,180,60,0.6);
+    -webkit-text-fill-color: #3b2200;
+  }
+  .level-badge {
+    background: linear-gradient(135deg, #2246a8, #142a63);
+    border: 1px solid #4a7bff; border-radius: 30px;
+    padding: 6px 12px; font-size: 0.72rem; font-weight: 700;
+    letter-spacing: 0.5px; text-transform: uppercase;
+    box-shadow: 0 4px 12px rgba(40,90,220,0.4);
+  }
+
+  /* PRIZE LADDER (3 stage) */
+  .stage-bar {
+    display: flex; gap: 6px; margin-bottom: 12px; position: relative; z-index: 2;
+  }
+  .stage-item {
+    flex: 1; background: #0f1830; border: 1px solid #263a68;
+    border-radius: 12px; padding: 8px 6px; text-align: center;
+    transition: all 0.3s ease; position: relative;
+  }
+  .stage-item .stage-label { font-size: 0.6rem; color: #7f9bd1; text-transform: uppercase; letter-spacing: 0.6px; font-weight: 700; }
+  .stage-item .stage-prize { font-size: 0.72rem; font-weight: 800; color: #cfe0ff; margin-top: 2px; }
+  .stage-item.active {
+    background: linear-gradient(135deg, #2d5cff, #1a3a9e);
+    border-color: #7ba5ff; box-shadow: 0 0 16px rgba(80,140,255,0.55);
+    transform: translateY(-2px);
+  }
+  .stage-item.active .stage-prize { color: #fff9c4; }
+  .stage-item.safe { border-color: #ffb03a; background: #2a1e08; }
+  .stage-item.safe .stage-prize { color: #ffd76a; }
+
+  /* CANVAS 3D */
+  .canvas-container {
+    width: 100%; height: 140px; background: #05091a;
+    border-radius: 20px; margin-bottom: 12px; overflow: hidden;
+    border: 1px solid #24375e; box-shadow: inset 0 0 30px rgba(0,40,100,0.7);
+    position: relative; z-index: 2;
+  }
+  .canvas-container canvas { display: block; width: 100% !important; height: 100% !important; }
+
+  /* QUIZ CARD */
+  .quiz-card {
+    background: linear-gradient(160deg, #101c3d, #0a1330);
+    border: 1px solid #2a3f6e; border-radius: 20px;
+    padding: 14px; margin-bottom: 10px; position: relative; z-index: 2;
+    box-shadow: 0 8px 0 #060c1e, inset 0 1px 0 rgba(255,255,255,0.05);
+  }
+
+  .q-meta {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 8px; font-size: 0.68rem; color: #8fa9d8;
+    text-transform: uppercase; letter-spacing: 0.6px; font-weight: 700;
+  }
+  .q-meta .timer {
+    background: #14224a; padding: 4px 10px; border-radius: 20px;
+    border: 1px solid #2f4a85; color: #9dc0ff; font-weight: 700;
+    transition: all 0.3s;
+  }
+  .q-meta .timer.warn { background: #5a1a1a; border-color: #d94c4c; color: #ffb3b3; animation: pulse 0.8s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.55} }
+
+  .q-image {
+    width: 100%; height: 110px; background: #0a1226;
+    border-radius: 14px; border: 1px solid #24375e;
+    margin-bottom: 10px; display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+  }
+  .q-image svg { width: 100%; height: 100%; }
+
+  .question-text {
+    font-size: 1rem; font-weight: 600; line-height: 1.4;
+    color: #eaf1ff; margin-bottom: 12px; min-height: 48px;
+  }
+
+  .options-grid { display: flex; flex-direction: column; gap: 8px; }
+
+  .option-btn {
+    display: flex; align-items: center; gap: 10px;
+    background: linear-gradient(180deg, #1a2748, #121b38);
+    border: 1.5px solid #31497e; border-radius: 14px;
+    padding: 12px 14px; font-size: 0.9rem; font-weight: 500;
+    color: #e3edff; cursor: pointer; transition: all 0.15s;
+    text-align: left; box-shadow: 0 3px 0 #08101f;
+  }
+  .option-btn:active { transform: translateY(2px); box-shadow: 0 1px 0 #08101f; }
+  .option-btn .letter {
+    background: #0a1129; width: 26px; height: 26px; flex-shrink: 0;
+    border-radius: 8px; display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 0.75rem; color: #ffd76a;
+    border: 1px solid #2f4a85;
+  }
+  .option-btn.selected {
+    background: linear-gradient(180deg, #f5a524, #d98200);
+    border-color: #ffd76a; color: #2a1700;
+    box-shadow: 0 3px 0 #6b3f00, 0 0 16px rgba(255,180,60,0.5);
+  }
+  .option-btn.selected .letter { background: #4a2a00; color: #ffd76a; border-color: #ffd76a; }
+  .option-btn.correct {
+    background: linear-gradient(180deg, #23a35a, #166b39);
+    border-color: #5fffa3; color: #eafff3;
+    box-shadow: 0 3px 0 #0a3d1e, 0 0 18px rgba(80,255,150,0.5);
+  }
+  .option-btn.correct .letter { background: #0a3d1e; color: #5fffa3; border-color: #5fffa3; }
+  .option-btn.wrong {
+    background: linear-gradient(180deg, #b03535, #7a1f1f);
+    border-color: #ff7a7a; color: #ffe9e9;
+    box-shadow: 0 3px 0 #4a0e0e;
+  }
+  .option-btn.wrong .letter { background: #4a0e0e; color: #ff7a7a; border-color: #ff7a7a; }
+  .option-btn.eliminated {
+    opacity: 0.25; pointer-events: none; text-decoration: line-through;
+  }
+  .option-btn.disabled { pointer-events: none; opacity: 0.75; }
+
+  /* HELPERS (3 bantuan) */
+  .helpers {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
+    margin-bottom: 12px; position: relative; z-index: 2;
+  }
+  .helper-btn {
+    background: linear-gradient(180deg, #1a2a52, #0f1a3a);
+    border: 1.5px solid #3a5a9e; border-radius: 14px;
+    padding: 10px 6px; font-size: 0.7rem; font-weight: 700;
+    color: #cfe0ff; cursor: pointer; transition: all 0.15s;
+    text-align: center; letter-spacing: 0.3px;
+    box-shadow: 0 3px 0 #060c1e;
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+  }
+  .helper-btn .icon { font-size: 1.1rem; }
+  .helper-btn:active:not(:disabled) { transform: translateY(2px); box-shadow: 0 1px 0 #060c1e; }
+  .helper-btn:disabled { opacity: 0.35; cursor: not-allowed; text-decoration: line-through; }
+  .helper-btn.used { opacity: 0.3; }
+
+  /* MESSAGE */
+  .message-box {
+    min-height: 44px; border-radius: 12px; padding: 10px 14px;
+    font-size: 0.85rem; font-weight: 600; text-align: center;
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 10px; position: relative; z-index: 2;
+    transition: all 0.3s;
+  }
+  .message-box.info { background: #14224a; color: #a8c2ef; border: 1px solid #2f4a85; }
+  .message-box.good { background: #0e3d23; color: #7bffb8; border: 1px solid #23a35a; }
+  .message-box.bad { background: #3d0e0e; color: #ff9b9b; border: 1px solid #b03535; }
+  .message-box.warn { background: #3d2a0e; color: #ffd76a; border: 1px solid #b08a35; }
+
+  /* NEXT / ACTION */
+  .action-row { display: flex; gap: 8px; position: relative; z-index: 2; }
+  .next-btn {
+    flex: 1; background: linear-gradient(180deg, #3d6eff, #1e3a9e);
+    border: 1px solid #7ea2ff; border-radius: 14px;
+    padding: 14px; font-weight: 800; font-size: 0.95rem;
+    color: #fff; cursor: pointer; transition: all 0.15s;
+    box-shadow: 0 4px 0 #0f1e52; letter-spacing: 0.4px;
+  }
+  .next-btn:active:not(:disabled) { transform: translateY(3px); box-shadow: 0 1px 0 #0f1e52; }
+  .next-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .next-btn.danger { background: linear-gradient(180deg, #d94c4c, #8a1f1f); box-shadow: 0 4px 0 #4a0e0e; border-color: #ff7a7a; }
+
+  /* SAVE / DOWNLOAD */
+  .save-section {
+    display: flex; gap: 8px; margin-top: 12px; position: relative; z-index: 2;
+  }
+  .save-btn, .download-btn {
+    flex: 1; background: #1a2748; border: 1px solid #3a5a9e;
+    border-radius: 12px; padding: 10px; font-size: 0.75rem; font-weight: 700;
+    color: #cfe0ff; cursor: pointer; box-shadow: 0 3px 0 #060c1e;
+    transition: all 0.15s;
+  }
+  .download-btn { background: #1e3a5f; border-color: #2f5b8a; }
+  .save-btn:active, .download-btn:active { transform: translateY(2px); box-shadow: 0 1px 0 #060c1e; }
+
+  .reset-btn {
+    width: 100%; background: transparent; border: 1px solid #38496b;
+    border-radius: 12px; padding: 8px; font-size: 0.72rem;
+    color: #8ba0c2; cursor: pointer; margin-top: 8px; font-weight: 600;
+    position: relative; z-index: 2;
+  }
+  .reset-btn:active { background: #1e2638; }
+
+  /* MODAL */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(3,6,16,0.85);
+    display: none; align-items: center; justify-content: center;
+    padding: 16px; z-index: 100; backdrop-filter: blur(4px);
+  }
+  .modal-overlay.show { display: flex; }
+  .modal-box {
+    max-width: 440px; width: 100%;
+    background: linear-gradient(160deg, #14224a, #0a1330);
+    border: 1px solid #4a7bff; border-radius: 24px;
+    padding: 22px 18px; text-align: center;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.9), 0 0 40px rgba(80,140,255,0.3);
+    position: relative;
+  }
+  .modal-box h2 {
+    font-size: 1.4rem; margin-bottom: 10px;
+    background: linear-gradient(90deg, #ffd76a, #ffb03a);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .modal-box p { font-size: 0.9rem; color: #cfe0ff; margin-bottom: 16px; line-height: 1.5; }
+  .modal-box .prize-big {
+    font-size: 1.6rem; font-weight: 900; color: #ffd76a;
+    margin: 12px 0; text-shadow: 0 0 20px rgba(255,180,60,0.6);
+  }
+  .modal-btn {
+    background: linear-gradient(180deg, #3d6eff, #1e3a9e);
+    border: 1px solid #7ea2ff; border-radius: 14px;
+    padding: 12px 24px; font-weight: 800; font-size: 0.95rem;
+    color: #fff; cursor: pointer; box-shadow: 0 4px 0 #0f1e52;
+    margin-top: 6px; width: 100%;
+  }
+  .modal-btn:active { transform: translateY(3px); box-shadow: 0 1px 0 #0f1e52; }
+
+  /* Confetti */
+  .confetti {
+    position: fixed; width: 10px; height: 10px; top: -20px;
+    pointer-events: none; z-index: 200; border-radius: 2px;
+    animation: fall linear forwards;
+  }
+  @keyframes fall {
+    to { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+  }
+
+  /* Toast */
+  .toast {
+    position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(120px);
+    background: #1a2748; border: 1px solid #4a7bff; color: #cfe0ff;
+    padding: 10px 20px; border-radius: 30px; font-size: 0.8rem; font-weight: 700;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.6); z-index: 300;
+    transition: transform 0.3s ease; opacity: 0;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <!-- HEADER -->
+  <div class="header">
+    <div class="brand"><span class="logo">⚗️</span> ChemMillionaire</div>
+    <div class="level-badge" id="stageBadge">Stage 1 · Soal 1</div>
+  </div>
+
+  <!-- STAGE BAR -->
+  <div class="stage-bar" id="stageBar">
+    <div class="stage-item active" data-stage="0">
+      <div class="stage-label">Stage 1</div>
+      <div class="stage-prize">Rp 100rb</div>
+    </div>
+    <div class="stage-item" data-stage="1">
+      <div class="stage-label">Stage 2</div>
+      <div class="stage-prize">Rp 1jt</div>
+    </div>
+    <div class="stage-item" data-stage="2">
+      <div class="stage-label">Stage 3</div>
+      <div class="stage-prize">Rp 10jt</div>
+    </div>
+  </div>
+
+  <!-- THREE.JS CANVAS -->
+  <div class="canvas-container" id="canvasContainer"></div>
+
+  <!-- QUIZ CARD -->
+  <div class="quiz-card">
+    <div class="q-meta">
+      <span id="qCounter">Soal 1 / 15</span>
+      <span class="timer" id="timerDisplay">⏱ 30s</span>
+    </div>
+    <div class="q-image" id="qImage"></div>
+    <div class="question-text" id="questionText">Memuat soal...</div>
+    <div class="options-grid" id="optionsContainer"></div>
+  </div>
+
+  <!-- HELPERS -->
+  <div class="helpers">
+    <button class="helper-btn" id="helper5050"><span class="icon">✂️</span>50:50</button>
+    <button class="helper-btn" id="helperPhone"><span class="icon">📞</span>Telepon</button>
+    <button class="helper-btn" id="helperTeacher"><span class="icon">👨‍🏫</span>Tanya Guru</button>
+  </div>
+
+  <!-- MESSAGE -->
+  <div class="message-box info" id="messageBox">Pilih jawaban yang menurutmu benar!</div>
+
+  <!-- ACTION -->
+  <div class="action-row">
+    <button class="next-btn" id="nextBtn" disabled>Kunci Jawaban</button>
+  </div>
+
+  <!-- SAVE -->
+  <div class="save-section">
+    <button class="save-btn" id="saveBtn">💾 Simpan</button>
+    <button class="download-btn" id="downloadBtn">⬇️ .JSON</button>
+  </div>
+  <button class="reset-btn" id="resetBtn">🔄 Reset Progress</button>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal-box">
+    <h2 id="modalTitle">Selamat!</h2>
+    <p id="modalText">Kamu telah menyelesaikan permainan.</p>
+    <div class="prize-big" id="modalPrize">Rp 0</div>
+    <button class="modal-btn" id="modalBtn">Main Lagi</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ============================================================
+// 1. DATA SOAL HIDROKARBON (15 soal, 3 stage, dengan SVG gambar)
+// ============================================================
+// Stage 1: Soal 1-5   (mudah)      - hadiah Rp 100.000
+// Stage 2: Soal 6-10  (sedang)     - hadiah Rp 1.000.000
+// Stage 3: Soal 11-15 (sulit)      - hadiah Rp 10.000.000
+
+const QUESTIONS = [
+  // ---------- STAGE 1: DASAR (1-5) ----------
+  {
+    question: "Senyawa hidrokarbon yang hanya memiliki ikatan tunggal C–C disebut...",
+    options: ["Alkena", "Alkana", "Alkuna", "Aromatik"],
+    correct: 1,
+    image: `<svg viewBox="0 0 300 110" xmlns="http://www.w3.org/2000/svg">
+      <rect width="300" height="110" fill="#0a1226"/>
+      <text x="150" y="30" fill="#ffd76a" font-size="13" text-anchor="middle" font-weight="700">Rumus Umum Alkana</text>
+      <text x="150" y="62" fill="#7bffb8" font-size="26" text-anchor="middle" font-weight="800" font-family="monospace">CnH2n+2</text>
+      <text x="150" y="88" fill="#8fa9d8" font-size="11" text-anchor="middle">Contoh: CH4 (Metana)</text>
+    </svg>`
+  },
+  {
+    question: "Rumus kimia metana yang benar adalah...",
+    options: ["CH4", "C2H6", "C2H4", "C2H2"],
+    correct: 0,
+    image: `<svg viewBox="0 0 300 110" xmlns="http://www.w3.org/2000/svg">
+      <rect width="300" height="110" fill="#0a1226"/>
+      <circle cx="150" cy="55" r="18" fill="#3a7bd5"/>
+      <text x="150" y="60" fill="#fff" font-size="11" text-anchor="middle" font-weight="800">C</text>
+      <circle cx="90" cy="30" r="10" fill="#ffaa33"/>
+      <text x="90" y="34" fill="#3b2200" font-size="9" text-anchor="middle" font-weight="800">H</text>
+      <circle cx="210" cy="30" r="10" fill="#ffaa33"/>
+      <text x="210" y="34" fill="#3b2200" font-size="9" text-anchor="middle" font-weight="800">H</text>
+      <circle cx="90" cy="80" r="10" fill="#ffaa33"/>
+      <text x="90" y="84" fill="#3b2200" font-size="9" text-anchor="middle" font-weight="800">H</text>
+      <circle cx="210" cy="80" r="10" fill="#ffaa33"/>
+      <text x="210" y="84" fill="#3b2200" font-size="9" text-anchor="middle" font-weight="800">H</text>
+      <line x1="150" y1="55" x2="90" y2="30" stroke="#88aaff" stroke-width="3"/>
+      <line x1="150" y1="55" x2="210" y2="30" stroke="#88aaff" stroke-width="3"/>
+      <line x1="150" y1="55" x2="90" y2="80" stroke="#88aaff" stroke-width="3"/>
+      <line x1="150" y1="55" x2="210" y2="80" stroke="#88aaff" stroke-width="3"/>
+    </svg>`
+  },
+  {
+    question: "Ikatan rangkap dua C=C terdapat pada senyawa...",
+    options: ["Etana", "Etena", "Etuna", "Propana"],
+    correct: 1,
+    image: `<svg viewBox="0 0 300 110" xmlns="http://www.w3.org/2000/svg">
+      <rect width="300" height="110" fill="#0a1226"/>
+      <text x="150" y="25" fill="#ffd76a" font-size="12" text-anchor="middle" font-weight="700">Alkena (C=C)</text>
+      <line x1="100" y1="60" x2="200" y2="60" stroke="#88aaff" stroke-width="4"/>
+      <line x1="100" y1="72" x2="200" y2="72" stroke="#88aaff" stroke-width="4"/>
+      <circle cx="100" cy="66" r="14" fill="#3a7bd5"/>
+      <circle cx="200" cy="66" r="14" fill="#3a7bd5"/>
+      <text x="100" y="70" fill="#fff" font-size="10" text-anchor="middle" font-weight="800">C</text>
+      <text x="200" y="70" fill="#fff" font-size="10" text-anchor="middle" font-weight="800">C</text>
+      <text x="150" y="100" fill="#8fa9d8" font-size="10" text-anchor="middle">Etena: H2C=CH2</text>
+    </svg>`
+  },
+  {
+    question: "Nama IUPAC dari senyawa CH3–CH2–CH3 adalah...",
+    options: ["Etana", "Propana", "Butana", "Metana"],
+    correct: 1,
+    image: `<svg viewBox="0 0 300 110" xmlns="http://www.w3.org/2000/svg">
+      <rect width="300" height="110" fill="#0a1226"/>
+      <text x="150" y="25" fill="#ffd76a" font-size="12" text-anchor="middle" font-weight="700">Rantai Karbon</text>
+      <circle cx="70" cy="65" r="14" fill="#3a7bd5"/>
+      <text x="70" y="69" fill="#fff" font-size="10" text-anchor="middle" font-weight="800">C</text>
+      <circle cx="150" cy="65" r="14" fill="#3a7bd5"/>
+      <text x="150" y="69" fill="#fff" font-size="10" text-anchor="middle" font-weight="800">C</text>
+      <circle cx="230" cy="65" r="14" fill="#3a7bd5"/>
+      <text x="230" y="69" fill="#fff" font-size="10" text-anchor="middle" font-weight="800">C</text>
+      <line x1="84" y1="65" x2="136" y2="65" stroke="#88aaff" stroke-width="3"/>
+      <line x1="164" y1="65" x2="216" y2="65" stroke="#88aaff" stroke-width="3"/>
+      <text x="150" y="100" fill="#8fa9d8" font-size="10" text-anchor="middle">CH3–CH2–CH3</text>
+    </svg>`
+  },
+  {
+    question: "Hidrokarbon yang memiliki ikatan rangkap tiga C≡C disebut...",
+    options: ["Alkana", "Alkena", "Alkuna", "Sikloalkana"],
+    correct: 2,
+    image: `<svg viewBox="0 0 300 110" xmlns="http://www.w3.org/2000/svg">
+      <rect width="300" height="110" fill="#0a1226"/>
+      <text x="150" y="25" fill="#ffd76a" font-size="12" text-anchor="middle" font-weight="700">Alkuna (C≡C)</text>
+      <line x1="100" y1="55" x2="200" y2="55" stroke="#88aaff" stroke-width="3"/>
+      <line x1="100" y1="65" x2="200" y2="65" stroke="#88aaff" stroke-width="3"/>
+      <line x1="100" y1="75" x2="200" y2="75" stroke="#88aaff" stroke-width="3"/>
+      <circle cx="100" cy="65" r="14" fill="#3a7bd5"/>
+      <circle cx="200" cy="65" r="14" fill="#3a7bd5"/>
+      <text x="100" y="69" fill="#fff" font-size="10" text-anchor="middle" font-weight="800">C</text>
+      <text x="200" y="69" fill="#fff" font-size="10" text-anchor="middle" font-weight="800">C</text>
+      <text x="150" y="100" fill="#8fa9d8" font-size="10" text-anchor="middle">Etuna: HC≡CH</text>
+    </svg>`
+  },
+  // ---------- STAGE 2: MENENGAH (6-10) ----------
+  {
+    question: "Jumlah atom H pada senyawa 2-metilbutana adalah...",
+    options: ["10", "12", "14", "16"],
+    correct: 1,
+    image: `<svg viewBox="0 0 300 110" xmlns="http://www.w3.org/2000/svg">
+      <rect width="300" height="110" fill="#0a1226"/>
+      <text x="150" y="22" fill="#ffd76a" font-size="12" text-anchor="middle" font-weight="700">2-Metilbutana</text>
+      <circle cx="55" cy="70" r="12" fill="#3a7bd5"/>
+      <circle cx="115" cy="70" r="12" fill="#3a7bd5"/>
+      <circle cx="175" cy="70" r="12" fill="#3a7bd5"/>
+      <circle cx="235" cy="70" r="12" fill="#3a7bd5"/>
+      <circle cx="115" cy="35" r="12" fill="#23a35a"/>
+      <line x1="67" y1="70" x2="103" y2="70" stroke="#88aaff" stroke-width="3"/>
+      <line x1="127" y1="70" x2="163" y2="70" stroke="#88aaff" stroke-width="3"/>
+      <line x1="187" y1="70" x2="223" y2="70" stroke="#88aaff" stroke-width="3"/>
+      <line x1="115" y1="58" x2="115" y2="47" stroke="#23a35a" stroke-width="3"/>
+      <text x="55" y="74" fill="#fff" font-size="9" text-anchor="middle" font-weight="800">C</text>
+      <text x="115" y="74" fill="#fff" font-size="9" text-anchor="middle" font-weight="800">C</text>
+      <text x="175" y="74" fill="#fff" font-size="9" text-anchor="middle" font-weight="800">C</text>
+      <text x="235" y="74" fill="#fff" font-size="9" text-anchor="middle" font-weight="800">C</text>
+      <text x="115" y="39" fill="#fff" font-size="9" text-anchor="middle" font-weight="800">C</text>
+      <text x="150" y="100" fill="#8fa9d8" font-size="10" text-anchor="middle">Rantai utama: butana (4C)</text>
+    </svg>`
+  },
+  {
+    question: "Senyawa berikut yang termasuk alkena adalah...",
+    options: ["C3H8", "C3H6", "C3H4", "C3H3"],
+    correct: 1,
+    image: `<svg viewBox="0 0 300 110" xmlns="http://www.w3.org/2000/svg">
+      <rect width="300" height="110" fill="#0a1226"/>
+      <text x="150" y="30" fill="#ffd76a" font-size="12" text-anchor="middle" font-weight="700">Rumus Umum</text>
+      <text x="150" y="60" fill="#7bffb8" font-size="20" text-anchor="middle" font-weight="800" font-family="monospace">CnH2n</text>
+      <text x="150" y="88" fill="#8fa9d8" font-size="11" text-anchor="middle">Alkena (n ≥ 2)</text>
+    </svg>`
+  },
+  {
+    question: "Isomer dari C4H10 adalah...",
+    options: ["n-butana dan 2-metilpropana", "n-butana dan 1-butena", "propana dan butana", "2-butena dan 2-butuna"],
+    correct: 0,
+    image: `<svg viewBox="0 0 300 110" xmlns="http://www.w3.org/2000/svg">
+      <rect width="300" height="110" fill="#0a1226"/>
+      <text x="150" y="22" fill="#ffd76a" font-size="12" text-anchor="middle" font-weight="700">Isomer C4H10</text>
+      <text x="75" y="55" fill="#7bffb8" font-size="10" text-anchor="middle" font-weight="700">n-butana</text>
+      <text x="75" y="75" fill="#cfe0ff" font-size="10" text-anchor="middle" font-family="monospace">C–C–C–C</text>
+      <line x1="150" y1="20" x2="150" y2="100" stroke="#2a3f6e" stroke-width="1"/>
+      <text x="225" y="55" fill="#7bffb8" font-size="10" text-anchor="middle" font-weight="700">2-metilpropana</text>
+      <text x="225" y="75" fill="#cfe0ff" font-size="10" text-anchor="middle" font-family="monospace">C–C(C)–C</text>
+    </svg>`
+  },
+  {
+    question: "Reaksi CH2=CH2 + H2 → CH3–CH3 termasuk reaksi...",
+    options: ["Substitusi", "Adisi", "Eliminasi", "Oksidasi"],
+    correct: 1,
+    image: `<svg viewBox="0 0 300 110" xmlns="http://www.w3.org/2000/svg">
+      <rect width="300" height="110" fill="#0a1226"/>
+      <text x="150" y="22" fill="#ffd76a" font-size="12" text-anchor="middle" font-weight="700">Reaksi Adisi</text>
+      <text x="150" y="55" fill="#7bffb8" font-size="13" text-anchor="middle" font-weight="700" font-family="monospace">C=C + H2 → C–C</text>
+      <text x="150" y="85" fill="#8fa9d8" font-size="10" text-anchor="middle">Ikatan rangkap → tunggal</text>
+    </svg>`
+  },
+  {
+    question: "Nama IUPAC dari senyawa berikut: CH3–CH=CH–CH3",
+    options: ["1-butena", "2-butena", "butana", "butuna"],
+    correct: 1,
+    image: `<svg viewBox="0 0 300 110" xmlns="http://www.w3.org/2000/svg">
+      <rect width="300" height="110" fill="#0a1226"/>
+      <text x="150" y="22" fill="#ffd76a" font-size="12" text-anchor="middle" font-weight="700">2-Butena</text>
+      <circle cx="55" cy="70" r="12" fill="#3a7bd5"/>
+      <circle cx="115" cy="70" r="12" fill="#3a7bd5"/>
+      <circle cx="175" cy="70" r="12" fill="#3a7bd5"/>
+      <circle cx="235" cy="70" r="12" fill="#3a7bd5"/>
+      <line x1="67" y1="70" x2="103" y2="70" stroke="#88aaff" stroke-width="3"/>
+      <line x1="127" y1="65" x2="163" y2="65" stroke="#ffd76a" stroke-width="3"/>
+      <line x1="127" y1="75" x2="163" y2="75" stroke="#ffd76a" stroke-width="3"/>
+      <line x1="187" y1="70" x2="223" y2="70" stroke="#88aaff" stroke-width="3"/>
+      <text x="55" y="74" fill="#fff" font-size="9" text-anchor="middle" font-weight="800">C</text>
+      <text x="115" y="74" fill="#fff" font-size="9" text-anchor="middle" font-weight="800">C</text>
+      <text x="175" y="74" fill="#fff" font-size="9" text-anchor="middle" font-weight="800">C</text>
+      <text x="235" y="74" fill="#fff" font-size="9" text-anchor="middle" font-weight="800">C</text>
+      <text x="150" y="100" fill="#8fa9d8" font-size="10" text-anchor="middle">Ikatan rangkap di C2</text>
+    </svg>`
+  },
+  // ---------- STAGE 3: SULIT (11-15) ----------
+  {
+    question: "Senyawa aromatik paling sederhana adalah...",
+    options: ["Fenol", "Benzena", "Toluena", "Anilina"],
+    correct: 1,
+    image: `<svg viewBox="0 0 300 110" xmlns="http://www.w3.org/2000/svg">
+      <rect width="300" height="110" fill="#0a1226"/>
+      <text x="150" y="22" fill="#ffd76a" font-size="12" text-anchor="middle" font-weight="700">Cincin Benzena</text>
+      <polygon points="150,45 185,65 185,95 150,105 115,95 115,65" fill="none" stroke="#88aaff" stroke-width="3"/>
+      <circle cx="150" cy="75" r="14" fill="none" stroke="#ffd76a" stroke-width="3" stroke-dasharray="4 3"/>
+      <text x="150" y="80" fill="#ffd76a" font-size="10" text-anchor="middle" font-weight="800">C6H6</text>
+    </svg>`
+  },
+  {
+    question: "Jumlah isomer dari C5H12 (pentana) adalah...",
+    options: ["2", "3", "4", "5"],
+    correct: 1,
+    image: `<svg viewBox="0 0 300 110" xmlns="http://www.w3.org/2000/svg">
+      <rect width="300" height="110" fill="#0a1226"/>
+      <text x="150" y="22" fill="#ffd76a" font-size="12" text-anchor="middle" font-weight="700">Isomer Pentana (C5H12)</text>
+      <text x="50" y="55" fill="#7bffb8" font-size="9" text-anchor="middle" font-weight="700">n-pentana</text>
+      <text x="50" y="72" fill="#cfe0ff" font-size="9" text-anchor="middle" font-family="monospace">C–C–C–C–C</text>
+      <text x="150" y="55" fill="#7bffb8" font-size="9" text-anchor="middle" font-weight="700">2-metilbutana</text>
+      <text x="150" y="72" fill="#cfe0ff" font-size="9" text-anchor="middle" font-family="monospace">C–C(C)–C–C</text>
+      <text x="250" y="55" fill="#7bffb8" font-size="9" text-anchor="middle" font-weight="700">2,2-dimetilpropana</text>
+      <text x="250" y="72" fill="#cfe0ff" font-size="9" text-anchor="middle" font-family="monospace">C–C(C)2–C</text>
+    </svg>`
+  },
+  {
+    question: "Produk utama reaksi adisi HBr pada propena (CH3–CH=CH2) menurut aturan Markovnikov adalah...",
+    options: ["1-bromopropana", "2-bromopropana", "1,2-dibromopropana", "propanol"],
+    correct: 1,
+    image: `<svg viewBox="0 0 300 110" xmlns="http://www.w3.org/2000/svg">
+      <rect width="300" height="110" fill="#0a1226"/>
+      <text x="150" y="22" fill="#ffd76a" font-size="12" text-anchor="middle" font-weight="700">Aturan Markovnikov</text>
+      <text x="150" y="52" fill="#7bffb8" font-size="12" text-anchor="middle" font-weight="700" font-family="monospace">CH3–CH=CH2 + HBr</text>
+      <text x="150" y="78" fill="#ffd76a" font-size="13" text-anchor="middle" font-weight="700" font-family="monospace">→ CH3–CHBr–CH3</text>
+      <text x="150" y="100" fill="#8fa9d8" font-size="9" text-anchor="middle">H masuk ke C yang lebih banyak H</text>
+    </svg>`
+  },
+  {
+    question: "Senyawa yang dihasilkan dari reaksi oksidasi sempurna hidrokarbon adalah...",
+    options: ["CO dan H2O", "CO2 dan H2O", "C dan H2O", "CO2 dan H2"],
+    correct: 1,
+    image: `<svg viewBox="0 0 300 110" xmlns="http://www.w3.org/2000/svg">
+      <rect width="300" height="110" fill="#0a1226"/>
+      <text x="150" y="25" fill="#ffd76a" font-size="12" text-anchor="middle" font-weight="700">Pembakaran Sempurna</text>
+      <text x="150" y="58" fill="#7bffb8" font-size="14" text-anchor="middle" font-weight="800" font-family="monospace">CxHy + O2 → CO2 + H2O</text>
+      <text x="150" y="88" fill="#8fa9d8" font-size="10" text-anchor="middle">Menghasilkan gas CO₂ dan uap air</text>
+    </svg>`
+  },
+  {
+    question: "Nama IUPAC dari senyawa: CH3–C(CH3)2–CH2–CH3 adalah...",
+    options: ["2,2-dimetilbutana", "3,3-dimetilbutana", "2-metilpentana", "heksana"],
+    correct: 0,
+    image: `<svg viewBox="0 0 300 110" xmlns="http://www.w3.org/2000/svg">
+      <rect width="300" height="110" fill="#0a1226"/>
+      <text x="150" y="22" fill="#ffd76a" font-size="12" text-anchor="middle" font-weight="700">2,2-Dimetilbutana</text>
+      <circle cx="60" cy="75" r="12" fill="#3a7bd5"/>
+      <circle cx="120" cy="75" r="12" fill="#3a7bd5"/>
+      <circle cx="180" cy="75" r="12" fill="#3a7bd5"/>
+      <circle cx="240" cy="75" r="12" fill="#3a7bd5"/>
+      <circle cx="120" cy="40" r="10" fill="#23a35a"/>
+      <circle cx="120" cy="40" r="10" fill="none"/>
+      <text x="60" y="79" fill="#fff" font-size="9" text-anchor="middle" font-weight="800">C</text>
+      <text x="120" y="79" fill="#fff" font-size="9" text-anchor="middle" font-weight="800">C</text>
+      <text x="180" y="79" fill="#fff" font-size="9" text-anchor="middle" font-weight="800">C</text>
+      <text x="240" y="79" fill="#fff" font-size="9" text-anchor="middle" font-weight="800">C</text>
+      <text x="120" y="43" fill="#fff" font-size="8" text-anchor="middle" font-weight="800">2×CH3</text>
+      <line x1="72" y1="75" x2="108" y2="75" stroke="#88aaff" stroke-width="3"/>
+      <line x1="132" y1="75" x2="168" y2="75" stroke="#88aaff" stroke-width="3"/>
+      <line x1="192" y1="75" x2="228" y2="75" stroke="#88aaff" stroke-width="3"/>
+      <line x1="120" y1="63" x2="120" y2="50" stroke="#23a35a" stroke-width="3"/>
+      <text x="150" y="103" fill="#8fa9d8" font-size="9" text-anchor="middle">Rantai utama: butana (4C)</text>
+    </svg>`
+  }
+];
+
+// Konfigurasi hadiah & stage
+const STAGE_CONFIG = [
+  { stage: 1, startQ: 0,  endQ: 4,  prize: 100000,    safe: true,  name: "Stage 1" },
+  { stage: 2, startQ: 5,  endQ: 9,  prize: 1000000,   safe: true,  name: "Stage 2" },
+  { stage: 3, startQ: 10, endQ: 14, prize: 10000000,  safe: false, name: "Stage 3" }
+];
+
+// ============================================================
+// 2. STATE
+// ============================================================
+const STORAGE_KEY = 'chem_millionaire_v1';
+
+const DEFAULT_STATE = {
+  currentQ: 0,
+  score: 0,
+  answers: Array(15).fill(null), // true/false
+  helpersUsed: { fifty: false, phone: false, teacher: false },
+  stageReached: 0,
+  finished: false,
+  lastUpdated: new Date().toISOString()
+};
+
+let state = loadState();
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const p = JSON.parse(raw);
+      return {
+        currentQ: p.currentQ ?? 0,
+        score: p.score ?? 0,
+        answers: p.answers ?? Array(15).fill(null),
+        helpersUsed: p.helpersUsed ?? { fifty: false, phone: false, teacher: false },
+        stageReached: p.stageReached ?? 0,
+        finished: p.finished ?? false,
+        lastUpdated: p.lastUpdated ?? new Date().toISOString()
+      };
+    }
+  } catch(e) { console.warn(e); }
+  return JSON.parse(JSON.stringify(DEFAULT_STATE));
+}
+
+function persistState(silent) {
+  state.lastUpdated = new Date().toISOString();
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  if (!silent) showToast('✅ Progres tersimpan');
+}
+
+// ============================================================
+// 3. THREE.JS (efek molekul 3D)
+// ============================================================
+let scene, camera, renderer, molGroup, animId;
+
+function initThree() {
+  const container = document.getElementById('canvasContainer');
+  const w = container.clientWidth;
+  const h = container.clientHeight;
+
+  scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x05091a);
+
+  scene.add(new THREE.AmbientLight(0x8090c0, 0.7));
+  const d1 = new THREE.DirectionalLight(0xffffff, 1.2); d1.position.set(2,3,4); scene.add(d1);
+  const d2 = new THREE.PointLight(0xffaa33, 0.8); d2.position.set(-3,-1,2); scene.add(d2);
+  const d3 = new THREE.PointLight(0x3a7bd5, 1); d3.position.set(3,-2,-2); scene.add(d3);
+
+  camera = new THREE.PerspectiveCamera(50, w/h, 0.1, 100);
+  camera.position.set(0, 0.5, 5.5);
+
+  renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.setSize(w, h);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  container.appendChild(renderer.domElement);
+
+  molGroup = new THREE.Group();
+
+  // Atom pusat
+  const coreGeo = new THREE.SphereGeometry(0.9, 32, 32);
+  const coreMat = new THREE.MeshStandardMaterial({ color: 0x3a7bd5, roughness: 0.25, metalness: 0.3, emissive: 0x0a1a3a });
+  const core = new THREE.Mesh(coreGeo, coreMat);
+  molGroup.add(core);
+
+  // Atom-atom cabang
+  const smallGeo = new THREE.SphereGeometry(0.5, 24, 24);
+  const colors = [0xffaa33, 0x23a35a, 0xdd66ff, 0xff5577];
+  const positions = [
+    [1.7, 0.7, 0.3],
+    [-1.6, 0.8, -0.3],
+    [1.3, -1.2, 0.6],
+    [-1.4, -1.1, -0.5]
+  ];
+  positions.forEach((pos, i) => {
+    const mat = new THREE.MeshStandardMaterial({ color: colors[i], roughness: 0.3, metalness: 0.2, emissive: 0x111111 });
+    const atom = new THREE.Mesh(smallGeo, mat);
+    atom.position.set(pos[0], pos[1], pos[2]);
+    molGroup.add(atom);
+
+    // Ikatan
+    const bondGeo = new THREE.CylinderGeometry(0.06, 0.06, 1, 8);
+    const bondMat = new THREE.MeshStandardMaterial({ color: 0x88aaff, emissive: 0x1a2a4a });
+    const bond = new THREE.Mesh(bondGeo, bondMat);
+    const start = new THREE.Vector3(0,0,0);
+    const end = new THREE.Vector3(pos[0], pos[1], pos[2]);
+    const mid = new THREE.Vector3().addVectors(start, end).multiplyScalar(0.5);
+    const dir = new THREE.Vector3().subVectors(end, start);
+    bond.position.copy(mid);
+    bond.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0), dir.clone().normalize());
+    bond.scale.set(1, dir.length(), 1);
+    molGroup.add(bond);
+  });
+
+  // Partikel elektron
+  const pGeo = new THREE.BufferGeometry();
+  const count = 60;
+  const posArr = new Float32Array(count * 3);
+  for (let i = 0; i < count; i++) {
+    const theta = Math.random() * Math.PI * 2;
+    const phi = Math.acos(Math.random() * 2 - 1);
+    const r = 2 + Math.random() * 1.5;
+    posArr[i*3] = Math.sin(phi) * Math.cos(theta) * r;
+    posArr[i*3+1] = Math.sin(phi) * Math.sin(theta) * r;
+    posArr[i*3+2] = Math.cos(phi) * r;
+  }
+  pGeo.setAttribute('position', new THREE.BufferAttribute(posArr, 3));
+  const pMat = new THREE.PointsMaterial({ color: 0x88bbff, size: 0.05, transparent: true, opacity: 0.7 });
+  molGroup.add(new THREE.Points(pGeo, pMat));
+
+  molGroup.rotation.x = 0.3;
+  molGroup.rotation.y = 0.5;
+  scene.add(molGroup);
+
+  function animate() {
+    animId = requestAnimationFrame(animate);
+    molGroup.rotation.y += 0.004;
+    molGroup.rotation.x += 0.001;
+    renderer.render(scene, camera);
+  }
+  animate();
+
+  window.addEventListener('resize', () => {
+    const w2 = container.clientWidth;
+    const h2 = container.clientHeight;
+    camera.aspect = w2/h2;
+    camera.updateProjectionMatrix();
+    renderer.setSize(w2, h2);
+  });
+}
+
+// ============================================================
+// 4. UI HELPERS
+// ============================================================
+function showToast(msg, duration = 1800) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), duration);
+}
+
+function setMessage(text, type = 'info') {
+  const el = document.getElementById('messageBox');
+  el.textContent = text;
+  el.className = 'message-box ' + type;
+}
+
+function formatRupiah(n) {
+  return 'Rp ' + n.toLocaleString('id-ID');
+}
+
+// ============================================================
+// 5. GAME LOGIC
+// ============================================================
+let selectedAnswer = null;
+let locked = false;
+let timerInterval = null;
+let timeLeft = 30;
+
+const els = {
+  qCounter: document.getElementById('qCounter'),
+  timer: document.getElementById('timerDisplay'),
+  qImage: document.getElementById('qImage'),
+  qText: document.getElementById('questionText'),
+  options: document.getElementById('optionsContainer'),
+  nextBtn: document.getElementById('nextBtn'),
+  stageBar: document.getElementById('stageBar'),
+  stageBadge: document.getElementById('stageBadge'),
+  helper5050: document.getElementById('helper5050'),
+  helperPhone: document.getElementById('helperPhone'),
+  helperTeacher: document.getElementById('helperTeacher'),
+  modal: document.getElementById('modalOverlay'),
+  modalTitle: document.getElementById('modalTitle'),
+  modalText: document.getElementById('modalText'),
+  modalPrize: document.getElementById('modalPrize'),
+  modalBtn: document.getElementById('modalBtn')
+};
+
+function getStageForQ(q) {
+  for (const s of STAGE_CONFIG) {
+    if (q >= s.startQ && q <= s.endQ) return s;
+  }
+  return STAGE_CONFIG[STAGE_CONFIG.length - 1];
+}
+
+function renderStageBar() {
+  const stageBar = els.stageBar;
+  stageBar.innerHTML = '';
+  STAGE_CONFIG.forEach((s, i) => {
+    const div = document.createElement('div');
+    div.className = 'stage-item';
+    if (state.currentQ >= s.startQ && state.currentQ <= s.endQ) div.classList.add('active');
+    else if (state.currentQ > s.endQ) div.classList.add('safe');
+    div.innerHTML = `<div class="stage-label">${s.name}</div><div class="stage-prize">${formatRupiah(s.prize)}</div>`;
+    stageBar.appendChild(div);
+  });
+}
+
+function renderHelpers() {
+  els.helper5050.disabled = state.helpersUsed.fifty;
+  els.helperPhone.disabled = state.helpersUsed.phone;
+  els.helperTeacher.disabled = state.helpersUsed.teacher;
+  els.helper5050.classList.toggle('used', state.helpersUsed.fifty);
+  els.helperPhone.classList.toggle('used', state.helpersUsed.phone);
+  els.helperTeacher.classList.toggle('used', state.helpersUsed.teacher);
+}
+
+function renderQuestion() {
+  const q = state.currentQ;
+  if (q >= QUESTIONS.length) return endGame(true);
+
+  const data = QUESTIONS[q];
+  const stage = getStageForQ(q);
+
+  // Badge
+  els.stageBadge.textContent = `${stage.name} · Soal ${q+1}`;
+  els.qCounter.textContent = `Soal ${q+1} / ${QUESTIONS.length}`;
+
+  // Gambar
+  els.qImage.innerHTML = data.image;
+
+  // Pertanyaan
+  els.qText.textContent = data.question;
+
+  // Opsi
+  els.options.innerHTML = '';
+  data.options.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'option-btn';
+    btn.dataset.index = i;
+    btn.innerHTML = `<span class="letter">${String.fromCharCode(65+i)}</span> ${opt}`;
+    btn.addEventListener('click', () => selectAnswer(i, btn));
+    els.options.appendChild(btn);
+  });
+
+  // Reset state
+  selectedAnswer = null;
+  locked = false;
+  els.nextBtn.disabled = true;
+  els.nextBtn.textContent = 'Kunci Jawaban';
+  els.nextBtn.classList.remove('danger');
+  setMessage('Pilih jawaban yang menurutmu benar!', 'info');
+
+  renderStageBar();
+  renderHelpers();
+  startTimer();
+}
+
+function startTimer() {
+  clearInterval(timerInterval);
+  timeLeft = 30;
+  updateTimerDisplay();
+  timerInterval = setInterval(() => {
+    timeLeft--;
+    updateTimerDisplay();
+    if (timeLeft <= 0) {
+      clearInterval(timerInterval);
+      if (!locked) {
+        // waktu habis = salah
+        lockAnswer(-1);
+      }
+    }
+  }, 1000);
+}
+
+function updateTimerDisplay() {
+  els.timer.textContent = `⏱ ${Math.max(0, timeLeft)}s`;
+  els.timer.classList.toggle('warn', timeLeft <= 10);
+}
+
+function selectAnswer(idx, btnEl) {
+  if (locked) return;
+  selectedAnswer = idx;
+  document.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
+  btnEl.classList.add('selected');
+  els.nextBtn.disabled = false;
+  setMessage('Tekan "Kunci Jawaban" untuk mengonfirmasi.', 'info');
+}
+
+function lockAnswer(forcedIdx) {
+  if (locked) return;
+  locked = true;
+  clearInterval(timerInterval);
+
+  const q = state.currentQ;
+  const data = QUESTIONS[q];
+  const correctIdx = data.correct;
+  const chosen = forcedIdx !== undefined ? forcedIdx : selectedAnswer;
+
+  const allBtns = document.querySelectorAll('.option-btn');
+  allBtns.forEach(b => b.classList.add('disabled'));
+  document.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
+
+  if (chosen === correctIdx) {
+    allBtns[correctIdx].classList.add('correct');
+    state.answers[q] = true;
+    // Hadiah berdasarkan stage
+    const stage = getStageForQ(q);
+    state.score = stage.prize;
+    setMessage('✅ Benar! Kamu melanjutkan ke soal berikutnya.', 'good');
+    els.nextBtn.textContent = (q === QUESTIONS.length - 1) ? 'Selesai 🏆' : 'Soal Berikutnya →';
+    els.nextBtn.classList.remove('danger');
+    playConfetti();
+  } else {
+    if (chosen >= 0) allBtns[chosen].classList.add('wrong');
+    allBtns[correctIdx].classList.add('correct');
+    state.answers[q] = false;
+    setMessage(`❌ Kurang tepat. Jawaban: ${data.options[correctIdx]}`, 'bad');
+    els.nextBtn.textContent = 'Lihat Hasil';
+    els.nextBtn.classList.add('danger');
+  }
+  els.nextBtn.disabled = false;
+  renderStageBar();
+  persistState(true);
+}
+
+function nextQuestion() {
+  const q = state.currentQ;
+  if (state.answers[q] === false) {
+    // game over
+    endGame(false);
+    return;
+  }
+  if (state.answers[q] === true) {
+    if (q >= QUESTIONS.length - 1) {
+      endGame(true);
+      return;
+    }
+    state.currentQ++;
+    persistState(true);
+    renderQuestion();
+  }
+}
+
+function endGame(win) {
+  clearInterval(timerInterval);
+  state.finished = true;
+  if (!win) {
+    // mundur ke stage aman terakhir
+    let safeScore = 0;
+    for (const s of STAGE_CONFIG) {
+      if (s.safe && state.currentQ > s.endQ) safeScore = s.prize;
+    }
+    state.score = safeScore;
+  }
+  persistState(true);
+
+  els.modalTitle.textContent = win ? '🏆 LUAR BIASA!' : '💔 Game Over';
+  els.modalText.textContent = win
+    ? 'Selamat! Kamu berhasil menjawab semua soal Hidrokarbon. Kamu layak jadi ChemMillionaire!'
+    : `Kamu berhasil mencapai ${getStageForQ(state.currentQ).name}. Tetap semangat belajar Hidrokarbon!`;
+  els.modalPrize.textContent = formatRupiah(state.score);
+  els.modal.classList.add('show');
+
+  if (win) playConfetti(3000);
+}
+
+// ============================================================
+// 6. HELPERS (3 bantuan)
+// ============================================================
+function use5050() {
+  if (state.helpersUsed.fifty || locked) return;
+  state.helpersUsed.fifty = true;
+  renderHelpers();
+  const q = state.currentQ;
+  const data = QUESTIONS[q];
+  const correctIdx = data.correct;
+  // eliminasi 2 jawaban salah
+  const wrongIdx = [];
+  data.options.forEach((_, i) => { if (i !== correctIdx) wrongIdx.push(i); });
+  // acak
+  wrongIdx.sort(() => Math.random() - 0.5);
+  const toEliminate = wrongIdx.slice(0, 2);
+  const allBtns = document.querySelectorAll('.option-btn');
+  toEliminate.forEach(i => allBtns[i].classList.add('eliminated'));
+  setMessage('✂️ 50:50 digunakan! Dua pilihan salah dihilangkan.', 'warn');
+  persistState(true);
+}
+
+function usePhone() {
+  if (state.helpersUsed.phone || locked) return;
+  state.helpersUsed.phone = true;
+  renderHelpers();
+  const q = state.currentQ;
+  const data = QUESTIONS[q];
+  const correctIdx = data.correct;
+  // 80% benar
+  const isCorrect = Math.random() < 0.8;
+  let suggestion = correctIdx;
+  if (!isCorrect) {
+    const wrong = data.options.map((_,i)=>i).filter(i => i !== correctIdx);
+    suggestion = wrong[Math.floor(Math.random() * wrong.length)];
+  }
+  const letter = String.fromCharCode(65 + suggestion);
+  setMessage(`📞 Temanmu berkata: "Sepertinya jawabannya ${letter}. ${data.options[suggestion]}"`, 'warn');
+  persistState(true);
+}
+
+function useTeacher() {
+  if (state.helpersUsed.teacher || locked) return;
+  state.helpersUsed.teacher = true;
+  renderHelpers();
+  const q = state.currentQ;
+  const data = QUESTIONS[q];
+  const correctIdx = data.correct;
+  const explanation = data.options[correctIdx];
+  setMessage(`👨‍🏫 Gurumu menjelaskan: "Ingat konsepnya ya, jawaban yang tepat adalah ${String.fromCharCode(65+correctIdx)}. ${explanation}"`, 'warn');
+  persistState(true);
+}
+
+// ============================================================
+// 7. CONFETTI
+// ============================================================
+function playConfetti(duration = 1500) {
+  const colors = ['#ffd76a', '#3d6eff', '#23a35a', '#dd66ff', '#ff5577'];
+  const end = Date.now() + duration;
+  function spawn() {
+    if (Date.now() > end) return;
+    const c = document.createElement('div');
+    c.className = 'confetti';
+    c.style.left = Math.random() * 100 + 'vw';
+    c.style.background = colors[Math.floor(Math.random() * colors.length)];
+    c.style.animationDuration = (1.5 + Math.random() * 1.5) + 's';
+    c.style.width = (6 + Math.random() * 8) + 'px';
+    c.style.height = c.style.width;
+    document.body.appendChild(c);
+    setTimeout(() => c.remove(), 3000);
+    requestAnimationFrame(spawn);
+  }
+  spawn();
+}
+
+// ============================================================
+// 8. EXPORT / DOWNLOAD JSON
+// ============================================================
+function downloadJSON() {
+  const exportData = {
+    app: 'ChemMillionaire',
+    subject: 'Kimia - Hidrokarbon Kelas XII',
+    version: '1.0',
+    exportedAt: new Date().toISOString(),
+    state: state
+  };
+  const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `chemmillionaire_${Date.now()}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('📁 File JSON berhasil diunduh');
+}
+
+// ============================================================
+// 9. RESET
+// ============================================================
+function resetGame() {
+  if (!confirm('Yakin ingin mereset semua progres? Skor dan bantuan akan hilang.')) return;
+  state = JSON.parse(JSON.stringify(DEFAULT_STATE));
+  state.answers = Array(15).fill(null);
+  persistState(true);
+  els.modal.classList.remove('show');
+  renderQuestion();
+  showToast('🔄 Permainan direset');
+}
+
+// ============================================================
+// 10. INIT
+// ============================================================
+window.addEventListener('DOMContentLoaded', () => {
+  initThree();
+
+  // Event listeners
+  els.nextBtn.addEventListener('click', () => {
+    if (!locked) {
+      // kunci jawaban
+      if (selectedAnswer === null) {
+        setMessage('Pilih salah satu jawaban terlebih dahulu!', 'warn');
+        return;
+      }
+      lockAnswer();
+    } else {
+      nextQuestion();
+    }
+  });
+
+  els.helper5050.addEventListener('click', use5050);
+  els.helperPhone.addEventListener('click', usePhone);
+  els.helperTeacher.addEventListener('click', useTeacher);
+
+  document.getElementById('saveBtn').addEventListener('click', () => persistState(false));
+  document.getElementById('downloadBtn').addEventListener('click', downloadJSON);
+  document.getElementById('resetBtn').addEventListener('click', resetGame);
+  els.modalBtn.addEventListener('click', resetGame);
+
+  // render
+  if (state.finished) {
+    endGame(state.answers[state.currentQ] === true);
+  } else {
+    renderQuestion();
+  }
+});
+</script>
+</body>
+</html>
